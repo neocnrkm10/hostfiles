@@ -13,6 +13,7 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -35,7 +36,7 @@
             }
         }
         
-        // Initialize EmailJS
+        // Initialize EmailJS immediately
         (function() {
             emailjs.init("zr80LSG7-q1L2rnxr"); 
         })();
@@ -56,7 +57,7 @@
 
         /* Glass Panels */
         .glass-panel {
-            background: rgba(255, 255, 255, 0.95); /* Slightly more opaque for better contrast */
+            background: rgba(255, 255, 255, 0.95); 
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -90,12 +91,11 @@
         /* FAB Button Animation */
         .fab-btn {
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            /* Ensure it sits on top */
             z-index: 9999; 
         }
         .fab-btn:hover {
             transform: translateY(-4px) scale(1.1);
-            box-shadow: 0 15px 30px rgba(79, 70, 229, 0.6); /* Strong glow */
+            box-shadow: 0 15px 30px rgba(79, 70, 229, 0.6); 
         }
         .fab-btn:active { transform: scale(0.9); }
         
@@ -133,7 +133,7 @@
             outline: none;
             transition: all 0.2s;
             font-size: 0.875rem;
-            color: #1f2937; /* Dark text */
+            color: #1f2937; 
         }
         .custom-input:focus {
             background-color: #fff;
@@ -415,6 +415,7 @@
         // EmailJS Params
         const serviceID = "service_teqtpsl";
         const templateID = "template_92vutzu";
+        const publicKey = "zr80LSG7-q1L2rnxr"; // Public Key declared
 
         let currentMode = 'feed';
 
@@ -767,9 +768,16 @@
 
                 if(currentMode === 'email') {
                     btn.innerHTML = 'Sending Email...';
+                    
+                    // FIXED: Passed publicKey as 4th argument
                     await emailjs.send(serviceID, templateID, {
-                        to_name: sentTo, from_name: sentBy, message: emailMessage, file_link: fileLink, reply_to: sentBy
-                    });
+                        to_name: sentTo, 
+                        from_name: sentBy, 
+                        message: emailMessage, 
+                        file_link: fileLink, 
+                        reply_to: sentBy
+                    }, publicKey);
+                    
                     alert(`Email sent to ${sentTo}! 📧`);
                 } else {
                     alert("Upload successful! 🎉");
