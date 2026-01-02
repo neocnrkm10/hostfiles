@@ -139,6 +139,22 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 10px; }
+        
+        .custom-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            background-color: #f9fafb;
+            border: 2px solid #f3f4f6;
+            outline: none;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+            color: #374151;
+        }
+        .custom-input:focus {
+            background-color: #fff;
+            border-color: #6366f1;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
@@ -208,7 +224,7 @@
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <i class="fa-solid fa-magnifying-glass text-gray-400 group-focus-within:text-brand-400 transition-colors"></i>
                 </div>
-                <input type="text" id="searchInput" onkeyup="filterFiles()" placeholder="Search files..." 
+                <input type="text" id="searchInput" onkeyup="filterFiles()" placeholder="Search by name, sender, or content..." 
                     class="block w-full pl-11 pr-4 py-3 rounded-xl glass-dark text-white placeholder-gray-400 border border-white/10 focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20 outline-none transition-all">
             </div>
 
@@ -241,17 +257,36 @@
 
                     <div class="space-y-5">
                         <div class="group">
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">File Title</label>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">File Title <span class="text-red-400">*</span></label>
                             <input type="text" id="filename" placeholder="e.g. Physics Notes" 
-                                class="w-full px-4 py-3.5 rounded-xl bg-gray-50 border-2 border-gray-100 focus:border-brand-500 focus:bg-white outline-none transition font-medium text-gray-700">
+                                class="custom-input focus:ring-2 focus:ring-brand-500/20">
+                        </div>
+
+                        <div class="group">
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Description <span class="text-gray-400 font-normal lowercase">(optional)</span></label>
+                            <textarea id="description" rows="2" placeholder="Add a short note..." 
+                                class="custom-input focus:ring-2 focus:ring-brand-500/20 resize-none"></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Sent By <span class="text-gray-400 font-normal lowercase">(optional)</span></label>
+                                <input type="text" id="sentBy" placeholder="Your Name" 
+                                    class="custom-input focus:ring-2 focus:ring-brand-500/20">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Sent To <span class="text-gray-400 font-normal lowercase">(optional)</span></label>
+                                <input type="text" id="sentTo" placeholder="Receiver" 
+                                    class="custom-input focus:ring-2 focus:ring-brand-500/20">
+                            </div>
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Attachment</label>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1.5 ml-1">Attachment <span class="text-red-400">*</span></label>
                             <input type="file" id="file" class="hidden" onchange="updateFileName(this)">
-                            <label for="file" class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-brand-500 hover:bg-brand-50/50 transition">
+                            <label for="file" class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-brand-500 hover:bg-brand-50/50 transition">
                                 <div class="flex flex-col items-center justify-center pt-2 pb-3">
-                                    <i class="fa-solid fa-folder-open text-2xl text-gray-400 mb-2"></i>
+                                    <i class="fa-solid fa-folder-open text-xl text-gray-400 mb-1"></i>
                                     <p id="fileLabel" class="text-sm text-gray-500 font-medium">Click to choose file</p>
                                 </div>
                             </label>
@@ -271,7 +306,7 @@
                             
                             <div id="passwordInputContainer" class="hidden mt-3 transition-all">
                                 <input type="password" id="password" placeholder="Create a password" 
-                                    class="w-full px-4 py-3 rounded-lg bg-white border border-gray-200 focus:border-brand-500 outline-none transition text-sm">
+                                    class="custom-input">
                             </div>
                         </div>
                         <button id="uploadBtn" class="w-full py-4 mt-2 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-bold text-lg rounded-xl shadow-lg shadow-brand-500/30 transform transition-all active:scale-[0.98]">
@@ -333,7 +368,6 @@
         document.getElementById("uploadBtn").addEventListener("click", upload);
         
         // --- INITIALIZATION ---
-        // Check for Ref (Deep Link) immediately
         const urlParams = new URLSearchParams(window.location.search);
         const refId = urlParams.get('ref');
 
@@ -368,9 +402,7 @@
 
         // Copy Share Link
         window.shareLink = function(uuid) {
-            // Construct URL with ?ref=UUID
             const url = `${window.location.origin}${window.location.pathname}?ref=${uuid}`;
-            
             navigator.clipboard.writeText(url).then(() => {
                 showToast("Link copied to clipboard!");
             }).catch(err => {
@@ -392,7 +424,6 @@
             const feed = document.getElementById("feed");
             loader.style.display = "block";
             
-            // Hide Search and Change Title for focus
             document.getElementById('searchContainer').classList.add('hidden');
             document.getElementById('feedTitle').innerText = "Shared File";
             document.getElementById('feedSubtitle').innerText = "Someone shared this secure file with you.";
@@ -415,19 +446,14 @@
                 return;
             }
 
-            // Render ONLY this file
             feed.innerHTML = "";
             renderPostItem(data, feed);
 
-            // Auto-Trigger the Open logic
-            // We use a slight timeout to let the UI settle
             setTimeout(() => {
                 const isProtected = data.password && data.password !== "null" && data.password !== "";
                 if(isProtected) {
-                    // It will prompt
                     openFile(data.password, data.file_url, data.filename);
                 } else {
-                    // It will just open modal
                     openFile(null, data.file_url, data.filename);
                 }
             }, 300);
@@ -469,7 +495,7 @@
             });
         }
 
-        // ----- Helper to Render a Single Card -----
+        // ----- Render a Single Card -----
         function renderPostItem(post, container) {
             const age = new Date() - new Date(post.upload_time);
             const expired = age > 48*60*60*1000;
@@ -487,17 +513,20 @@
             else if(fn.match(/\.(zip|rar|7z)$/)) { iconClass = "fa-file-zipper text-orange-500"; bgClass = "bg-orange-50"; }
 
             const isProtected = post.password && post.password !== "null" && post.password !== "";
+            const hasDesc = post.description && post.description.trim() !== "";
+            const hasSender = post.sent_by && post.sent_by.trim() !== "";
+            const hasReceiver = post.sent_to && post.sent_to.trim() !== "";
 
             const div = document.createElement("div");
             div.className = `feed-item glass-panel p-4 sm:p-5 rounded-2xl transition-all duration-300 ${expired ? 'opacity-60 grayscale' : 'hover:scale-[1.01] hover:shadow-xl'}`;
 
             div.innerHTML = `
-                <div class="flex items-center gap-3 sm:gap-4">
-                    <div class="w-12 h-12 rounded-xl ${bgClass} flex items-center justify-center shrink-0 shadow-sm">
+                <div class="flex items-start gap-3 sm:gap-4">
+                    <div class="w-12 h-12 rounded-xl ${bgClass} flex items-center justify-center shrink-0 shadow-sm mt-1">
                         <i class="fa-regular ${iconClass} text-2xl"></i>
                     </div>
                     
-                    <div class="flex-grow min-w-0 pr-2">
+                    <div class="flex-grow min-w-0 pr-1">
                         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start">
                             <h3 class="font-bold text-gray-800 text-base sm:text-lg line-clamp-2 break-words leading-tight">${post.filename}</h3>
                             ${!expired ? `<span class="inline-block mt-1 sm:mt-0 w-fit shrink-0 text-[10px] font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full border border-green-200">ACTIVE</span>` : ''}
@@ -507,18 +536,28 @@
                             <i class="fa-solid fa-paperclip mr-1"></i> ${post.original_name || 'unknown_file'}
                         </p>
 
-                        <div class="flex flex-wrap items-center gap-2 sm:gap-3 mt-1.5 text-xs text-gray-500 font-medium">
+                        ${hasDesc ? `<p class="text-xs text-gray-600 mt-2 line-clamp-2 leading-relaxed bg-gray-50 p-2 rounded-lg border border-gray-100">${post.description}</p>` : ''}
+
+                        <div class="flex flex-wrap items-center gap-2 sm:gap-3 mt-3 text-xs text-gray-500 font-medium">
                             <span>${dateStr}</span>
-                            <span class="hidden sm:inline w-1 h-1 bg-gray-300 rounded-full"></span>
+                            <span class="w-1 h-1 bg-gray-300 rounded-full"></span>
                             <span class="text-brand-600 font-bold">${post.file_size || '0 KB'}</span>
                             <span class="w-1 h-1 bg-gray-300 rounded-full"></span>
                             <span>${post.views} views</span>
                             ${isProtected ? '<span class="ml-1 text-[10px] bg-gray-200 px-1.5 rounded text-gray-600"><i class="fa-solid fa-lock text-[8px]"></i></span>' : ''}
                             ${expired ? `<span class="w-1 h-1 bg-gray-300 rounded-full"></span><span class="text-red-500">Expired</span>` : ''}
                         </div>
+
+                        ${(hasSender || hasReceiver) ? `
+                            <div class="mt-3 pt-2 border-t border-gray-100 flex items-center text-xs text-gray-500">
+                                ${hasSender ? `<span class="mr-1">From: <b class="text-brand-600">${post.sent_by}</b></span>` : ''}
+                                ${(hasSender && hasReceiver) ? '<i class="fa-solid fa-arrow-right-long mx-2 text-gray-300"></i>' : ''}
+                                ${hasReceiver ? `<span>To: <b class="text-brand-600">${post.sent_to}</b></span>` : ''}
+                            </div>
+                        ` : ''}
                     </div>
 
-                    <div class="shrink-0 flex flex-col gap-2">
+                    <div class="shrink-0 flex flex-col gap-2 pt-1">
                         ${expired 
                             ? `<button disabled class="w-10 h-10 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center cursor-not-allowed"><i class="fa-solid fa-ban"></i></button>`
                             : `
@@ -553,7 +592,6 @@
                 uploadSection.classList.remove('hidden-page');
                 setTimeout(() => uploadSection.classList.add('active-page'), 10);
             } else {
-                // If returning to feed, clear ref and reload full feed
                 window.history.replaceState({}, document.title, window.location.pathname);
                 fab.style.display = 'block';
                 uploadSection.classList.remove('active-page');
@@ -561,7 +599,6 @@
                 feedSection.classList.remove('hidden-page');
                 setTimeout(() => feedSection.classList.add('active-page'), 10);
                 
-                // Reset UI elements if they were in "Shared Mode"
                 document.getElementById('searchContainer').classList.remove('hidden');
                 document.getElementById('feedTitle').innerText = "Available Files";
                 document.getElementById('feedSubtitle').innerText = "Secure any materials. Shared temporarily.";
@@ -579,22 +616,18 @@
             const items = feed.getElementsByClassName('feed-item');
 
             for (let i = 0; i < items.length; i++) {
-                const titleElement = items[i].querySelector('h3');
-                const origElement = items[i].querySelector('.orig-name');
-                if (titleElement) {
-                    const txtValue = (titleElement.textContent || "") + (origElement ? origElement.textContent : "");
-                    if (txtValue.toLowerCase().indexOf(filter) > -1) {
-                        items[i].style.display = "";
-                    } else {
-                        items[i].style.display = "none";
-                    }
+                // Search within the entire text content of the card (covers desc, sender, receiver)
+                const textContent = items[i].innerText || items[i].textContent;
+                if (textContent.toLowerCase().indexOf(filter) > -1) {
+                    items[i].style.display = "";
+                } else {
+                    items[i].style.display = "none";
                 }
             }
         }
 
         // ----- Confirm Add File -----
         window.confirmAddFile = function() {
-            // Reset fields
             document.getElementById('passwordToggle').checked = false;
             window.togglePasswordInput();
             
@@ -617,8 +650,10 @@
             
             const fileInput = document.getElementById("file").files[0];
             const filename = document.getElementById("filename").value.trim();
+            const description = document.getElementById("description").value.trim();
+            const sentBy = document.getElementById("sentBy").value.trim();
+            const sentTo = document.getElementById("sentTo").value.trim();
             
-            // Password logic
             const usePassword = document.getElementById('passwordToggle').checked;
             let password = null;
             if(usePassword) {
@@ -638,11 +673,9 @@
             const progressBar = document.getElementById("progressBar");
             const progressText = document.getElementById("progressText");
 
-            // Capture Metadata for DB
             const originalName = fileInput.name;
             const fileSizeFormatted = formatBytes(fileInput.size);
 
-            // Disable button
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing...';
             btn.disabled = true;
             btn.classList.add('opacity-70', 'cursor-not-allowed');
@@ -651,7 +684,6 @@
             progressBar.style.width = "0%";
             progressText.innerText = "0%";
 
-            // Prepare Data
             const formData = new FormData();
             formData.append("file", fileInput);
             formData.append("upload_preset", uploadPreset);
@@ -671,15 +703,15 @@
                 if (xhr.status === 200) {
                     try {
                         const cloudData = JSON.parse(xhr.responseText);
-                        
-                        // Generate a UUID for sharing
                         const shareUrlUUID = crypto.randomUUID();
 
-                        // Save to Supabase
                         const { error } = await supabase.from('posts').insert([{
                             title: filename + (password ? "_" + password : ""),
                             filename,
-                            password: password, // Can be null now
+                            description,
+                            sent_by: sentBy,
+                            sent_to: sentTo,
+                            password: password, 
                             file_url: cloudData.secure_url,
                             views: 0,
                             original_name: originalName, 
@@ -690,7 +722,11 @@
                         if (error) throw error;
 
                         alert("Upload successful! 🎉");
+                        // Reset Form
                         document.getElementById("filename").value = "";
+                        document.getElementById("description").value = "";
+                        document.getElementById("sentBy").value = "";
+                        document.getElementById("sentTo").value = "";
                         document.getElementById("file").value = "";
                         document.getElementById("password").value = "";
                         document.getElementById("fileLabel").innerText = "Click to choose file";
@@ -727,7 +763,6 @@
         // ----- Modal & Action Logic -----
         window.openFile = async function(passwordInput, fileUrl, fileName) {
             
-            // Check if password exists and is not null/empty string
             if (passwordInput && passwordInput !== 'null' && passwordInput !== '') {
                 const input = prompt("🔐 Enter file password:");
                 if (input !== passwordInput) {
@@ -737,7 +772,6 @@
             }
 
             try {
-                // Increment view count
                 const { data: posts } = await supabase.from('posts').select('views').eq('file_url', fileUrl).single();
                 if(posts) {
                     await supabase.from('posts').update({ views: (posts.views || 0) + 1 }).eq('file_url', fileUrl);
@@ -761,7 +795,6 @@
 
             } catch (err) {
                 console.error(err);
-                // Even if view count fails, allow download
                 window.open(fileUrl, '_blank');
             }
         };
